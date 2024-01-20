@@ -1,15 +1,15 @@
 // Core Module
 // const http = require("http");
 const books = [
-    {
-        id:1,
-        name:"book 1"
-    },
-    {
-        id:2,
-        name:"book 2"
-    },
-]
+  {
+    id: 1,
+    name: "book 1",
+  },
+  {
+    id: 2,
+    name: "book 2",
+  },
+];
 // CREATING SERVER USING NODE JS
 
 // const server = http.createServer((req, res) => {
@@ -39,12 +39,19 @@ const app = express();
 
 // HTTP METHODS
 app.get("/", (req, res) => {
-  res.send("Hello Welcome to express js ")
-})
+  res.send("Hello Welcome to expressssssssssss js ");
+});
 
 app.get("/api/books", (req, res) => {
-  res.json(books)
-})
+  res.json(books);
+});
+
+app.get("/api/books/:id", (req, res) => {
+  const book = books.find((e) => e.id === parseInt(req.params.id));
+  if (book) {
+    res.status(200).json(book);
+  } else res.status(404).json({ message: "book not found" });
+});
 // Running the server
-const PORT = 5000
+const PORT = 5000;
 app.listen(PORT, () => console.log(`Server is running on port ${PORT}`));
