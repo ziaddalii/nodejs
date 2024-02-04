@@ -24,11 +24,12 @@
 
 // CREATING SERVER USING EXPRESS JS
 const express = require("express");
+const Joi = require("joi");
 
 // Init App
 const app = express();
 // Apply Middlewares to accept json
-app.use(express.json())
+app.use(express.json());
 
 // My Data
 const books = [
@@ -67,6 +68,18 @@ app.get("/api/books/:id", (req, res) => {
 
 // POST Add Book
 app.post("/api/books", (req, res) => {
+  const schema = Joi.object({
+    title: Joi.string().trim().min(3).max(200).required(),
+    author: Joi.string().trim().min(3).max(40).required(),
+    desc: Joi.string().trim().min(3).max(500).required(),
+    price: Joi.number().min(0).required(),
+  });
+  const {error} = schema.validate(req.body);
+
+  if(error){
+    return res.status(400).json({message : error.details[0].message})
+  }
+  
   console.log(req.body);
   const book = {
     id: books.length + 1,
