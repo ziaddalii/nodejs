@@ -58,15 +58,15 @@ router.get("/:id", (req, res) => {
 // POST Add Book
 
 {
-    /**
-     * @desc   Create book
-     * @route  /api/books
-     * @method POST
-     * @access public
-     */
-  }
+  /**
+   * @desc   Create book
+   * @route  /api/books
+   * @method POST
+   * @access public
+   */
+}
 router.post("/", (req, res) => {
-    const {error} = validateCreateBook(req.body);
+  const { error } = validateCreateBook(req.body);
 
   if (error) {
     return res.status(400).json({ message: error.details[0].message });
@@ -86,13 +86,64 @@ router.post("/", (req, res) => {
 });
 
 // Validate Create Book
-function validateCreateBook(obj){
-    const schema = Joi.object({
-        title: Joi.string().trim().min(3).max(200).required(),
-        author: Joi.string().trim().min(3).max(40).required(),
-        desc: Joi.string().trim().min(3).max(500).required(),
-        price: Joi.number().min(0).required(),
-      });
-      return schema.validate(obj);
+function validateCreateBook(obj) {
+  const schema = Joi.object({
+    title: Joi.string().trim().min(3).max(200).required(),
+    author: Joi.string().trim().min(3).max(40).required(),
+    desc: Joi.string().trim().min(3).max(500).required(),
+    price: Joi.number().min(0).required(),
+  });
+  return schema.validate(obj);
 }
 module.exports = router;
+
+{
+  /**
+   * @desc   Update book
+   * @route  /api/books/:id
+   * @method PUT
+   * @access public
+   */
+}
+
+// Validate Update Book
+function validateUpdateBook(obj) {
+  const schema = Joi.object({
+    title: Joi.string().trim().min(3).max(200),
+    author: Joi.string().trim().min(3).max(40),
+    desc: Joi.string().trim().min(3).max(500),
+    price: Joi.number().min(0),
+  });
+  return schema.validate(obj);
+}
+router.put("/:id", (req, res) => {
+  const { error } = validateUpdateBook(req.body);
+  if (error) {
+    return res.status(400).json({ message: error.details[0].message });
+  }
+  const book = books.find((b) => b.id === parseInt(req.params.id));
+  if (book) {
+    res.status(200).json({ message: "book has been updated" });
+  } else {
+    res.status(404).json({ message: "book not found" });
+  }
+});
+
+
+{
+  /**
+   * @desc   Update book
+   * @route  /api/books/:id
+   * @method delete
+   * @access public
+   */
+}
+
+router.delete("/:id", (req, res) => {
+  const book = books.find((b) => b.id === parseInt(req.params.id));
+  if (book) {
+    res.status(200).json({ message: "book has been deleted" });
+  } else {
+    res.status(404).json({ message: "book not found" });
+  }
+});
