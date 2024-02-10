@@ -20,12 +20,6 @@ const books = [
   },
 ];
 
-// HTTP METHODS
-
-router.get("/", (req, res) => {
-  res.send("Hello Welcome to expressssssssssss js ");
-});
-
 // GET Books
 {
   /**
@@ -132,7 +126,7 @@ router.put("/:id", (req, res) => {
 
 {
   /**
-   * @desc   Update book
+   * @desc   delete book
    * @route  /api/books/:id
    * @method delete
    * @access public

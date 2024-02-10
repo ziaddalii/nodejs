@@ -25,6 +25,7 @@
 // CREATING SERVER USING EXPRESS JS
 const express = require("express");
 const booksPath = require("./routes/books")
+const authorsPath = require("./routes/authors")
 // Init App
 const app = express();
 // Apply Middlewares to accept json
@@ -32,6 +33,7 @@ app.use(express.json());
 
 // Routes
 app.use("/api/books", booksPath);
+app.use("/api/authors", authorsPath);
 
 // Running the server
 const PORT = 5000;
