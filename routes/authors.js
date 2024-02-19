@@ -1,24 +1,31 @@
 const express = require("express");
 const router = express.Router();
 const Joi = require("joi");
+const { Author } = require("../models/Author");
 module.exports = router;
 
 // My Authors
 const authors = [
   {
-    id: 1,
-    name: "Ahmed Tawfiq",
-    age: 55,
+    id:1,
+    firstName: "Nagiub",
+    lastName: "Mahfouz",
+    nationality: "Egyptian",
+    image: "default-image.png",
   },
   {
-    id: 2,
-    name: "Naguib Mahfouz",
-    age: 46,
+    id:2,
+    firstName: "Ahmed",
+    lastName: "El Sayed",
+    nationality: "Egyptian",
+    image: "default-image.png",
   },
   {
-    id: 3,
-    name: "Ibrahim Amasha",
-    age: 64,
+    id:3,
+    firstName: "Tafeeq",
+    lastName: "Mahrous",
+    nationality: "Egyptian",
+    image: "default-image.png",
   },
 ];
 
@@ -68,25 +75,35 @@ router.get("/:id", (req, res) => {
 // Validate Create Author
 function validateCreateAuthor(obj) {
   const schema = Joi.object({
-    name: Joi.string().trim().min(3).max(20).required(),
-    age: Joi.number().min(1).max(120).required(),
+    firstName: Joi.string().trim().min(3).max(20).required(),
+    lastName: Joi.string().trim().min(3).max(20).required(),
+    nationality: Joi.string().trim().min(3).max(20).required(),
+    image: Joi.string(),
   });
   return schema.validate(obj);
 }
 
-router.post("/", (req, res) => {
+router.post("/", async (req, res) => {
   const { error } = validateCreateAuthor(req.body);
   if (error) {
-    res.status(400).json({ message: error.details[0].message });
-  } else {
-    const author = {
-      id: authors.length + 1,
-      name: req.body.name,
-      age: req.body.age,
-    };
-    authors.push(author);
-    res.status(201).json(author); // 201 => created successfully
+    return res.status(400).json({ message: error.details[0].message });
   }
+try {
+    const author = new Author({
+        firstName: req.body.firstName,
+        lastName: req.body.lastName,
+        nationality: req.body.nationality,
+        image: req.body.image,
+    });
+
+    const result = await author.save();
+
+    res.status(201).json(result);
+    
+}catch (error) {
+    console.log(error);
+    res.status(500).json({message: "Something went wrong"});
+}
 });
 
 //   Update Author
@@ -104,42 +121,44 @@ router.post("/", (req, res) => {
 
 function ValidateUpdateAuthor(obj) {
   const schema = Joi.object({
-    name: Joi.string().trim().min(3).max(20),
-    age: Joi.number().min(1).max(120),
+    firstName: Joi.string().trim().min(3).max(20),
+    lastName: Joi.string().trim().min(3).max(20),
+    nationality: Joi.string().trim().min(3).max(20),
+    image: Joi.string(),
   });
   return schema.validate(obj);
 }
 
-router.put("/:id", (req, res)=>{
-    const author = authors.find(a => a.id === parseInt(req.params.id))
-    if(author){
-        const {error} = ValidateUpdateAuthor(req.body);
-        if(error){
-            res.status(400).json({message:error.details[0].message});
-        }else{
-            res.status(200).json({
-                message:"author has been updated",
-            })
-        }
-    }else{
-        res.status(404).json({message:"author not found"})
+router.put("/:id", (req, res) => {
+  const author = authors.find((a) => a.id === parseInt(req.params.id));
+  if (author) {
+    const { error } = ValidateUpdateAuthor(req.body);
+    if (error) {
+      res.status(400).json({ message: error.details[0].message });
+    } else {
+      res.status(200).json({
+        message: "author has been updated",
+      });
     }
-})
+  } else {
+    res.status(404).json({ message: "author not found" });
+  }
+});
 
 {
-    /**
-     * @desc   delete author
-     * @route  /api/author/:id
-     * @method delete
-     * @access public
-     */
+  /**
+   * @desc   delete author
+   * @route  /api/author/:id
+   * @method delete
+   * @access public
+   */
+}
+
+router.delete("/:id", (req, res) => {
+  const author = authors.find((b) => b.id === parseInt(req.params.id));
+  if (author) {
+    res.status(200).json({ message: "author has been deleted" });
+  } else {
+    res.status(404).json({ message: "author not found" });
   }
-  
-  router.delete("/:id", (req, res) => {
-    const author = authors.find((b) => b.id === parseInt(req.params.id));
-    if (author) {
-      res.status(200).json({ message: "author has been deleted" });
-    } else {
-      res.status(404).json({ message: "author not found" });
-    }
-  });
+});
