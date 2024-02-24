@@ -6,23 +6,6 @@ const {
   Book,
 } = require("../models/Book");
 const asyncHandler = require("express-async-handler");
-// My Books
-const books = [
-  {
-    id: 1,
-    title: "Harry Potter",
-    author: "Ahmed El-Sayed Tawfiq",
-    desc: "a Sci-fi book",
-    price: 125,
-  },
-  {
-    id: 2,
-    title: "Harry Potter : Chamber of Philosophy",
-    author: "Ahmed El-Sayed Tawfiq",
-    desc: "a Sci-fi book",
-    price: 215,
-  },
-];
 
 // GET Books
 {
@@ -36,7 +19,11 @@ const books = [
 router.get(
   "/",
   asyncHandler(async (req, res) => {
-    const books = await Book.find().populate("author", ["_id", "firstName", "lastName"]);
+    const books = await Book.find().populate("author", [
+      "_id",
+      "firstName",
+      "lastName",
+    ]);
     res.status(200).json(books);
   })
 );
@@ -56,7 +43,9 @@ router.get(
     const book = await Book.findById(req.params.id).populate("author");
     if (book) {
       res.status(200).json(book);
-    } else res.status(404).json({ message: "book not found" });
+    } else {
+      res.status(404).json({ message: "book not found" });
+    }
   })
 );
 
@@ -117,8 +106,8 @@ router.put(
           title: req.body.title,
           author: req.body.author,
           desc: req.body.desc,
-          cover:req.body.cover,
-          price: req.body.price
+          cover: req.body.cover,
+          price: req.body.price,
         },
       },
       {

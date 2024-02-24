@@ -1,6 +1,6 @@
 // Core Module
 // const http = require("http");
-
+const logger = require("./middlewares/logger");
 // CREATING SERVER USING NODE JS
 
 // const server = http.createServer((req, res) => {
@@ -28,12 +28,13 @@ const booksPath = require("./routes/books");
 const authorsPath = require("./routes/authors");
 const mongoose = require("mongoose");
 const dotenv = require("dotenv");
+const { errorHandler, notFound } = require("./middlewares/errors");
 dotenv.config();
 // Connection to database
 mongoose
-  .connect()
+  .connect(process.env.MONGO_URI)
   .then(() => {
-    console.log(process.env.MONGO_URI);
+    console.log("Connected to MongoDB...");
   })
   .catch((error) => {
     console.log("Connection Failed To Connect to MongoDB", error);
@@ -43,10 +44,17 @@ mongoose
 const app = express();
 // Apply Middlewares to accept json
 app.use(express.json());
+app.use(logger);
 
 // Routes
 app.use("/api/books", booksPath);
 app.use("/api/authors", authorsPath);
+
+// Error Not Found
+app.use(notFound)
+
+// Error Handler Middleware
+app.use(errorHandler)
 
 // Running the server
 const PORT = process.env.PORT || 5000;
