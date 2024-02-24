@@ -1,7 +1,11 @@
 const express = require("express");
 const router = express.Router();
-const Joi = require("joi");
-
+const {
+  validateCreateBook,
+  validateUpdateBook,
+  Book,
+} = require("../models/Book");
+const asyncHandler = require("express-async-handler");
 // My Books
 const books = [
   {
@@ -29,9 +33,13 @@ const books = [
    * @access public
    */
 }
-router.get("/", (req, res) => {
-  res.json(books);
-});
+router.get(
+  "/",
+  asyncHandler(async (req, res) => {
+    const books = await Book.find().populate("author", ["_id", "firstName", "lastName"]);
+    res.status(200).json(books);
+  })
+);
 
 // GET Book Details
 {
@@ -42,12 +50,15 @@ router.get("/", (req, res) => {
    * @access public
    */
 }
-router.get("/:id", (req, res) => {
-  const book = books.find((e) => e.id === parseInt(req.params.id));
-  if (book) {
-    res.status(200).json(book);
-  } else res.status(404).json({ message: "book not found" });
-});
+router.get(
+  "/:id",
+  asyncHandler(async (req, res) => {
+    const book = await Book.findById(req.params.id).populate("author");
+    if (book) {
+      res.status(200).json(book);
+    } else res.status(404).json({ message: "book not found" });
+  })
+);
 
 // POST Add Book
 
@@ -59,36 +70,28 @@ router.get("/:id", (req, res) => {
    * @access public
    */
 }
-router.post("/", (req, res) => {
-  const { error } = validateCreateBook(req.body);
+router.post(
+  "/",
+  asyncHandler(async (req, res) => {
+    const { error } = validateCreateBook(req.body);
 
-  if (error) {
-    return res.status(400).json({ message: error.details[0].message });
-  }
+    if (error) {
+      return res.status(400).json({ message: error.details[0].message });
+    }
 
-  console.log(req.body);
-  const book = {
-    id: books.length + 1,
-    title: req.body.title,
-    author: req.body.author,
-    desc: req.body.desc,
-    price: req.body.cover,
-  };
+    const book = new Book({
+      title: req.body.title,
+      author: req.body.author,
+      desc: req.body.desc,
+      cover: req.body.cover,
+      price: req.body.price,
+    });
 
-  books.push(book);
-  res.status(201).json(book); // 201 => created successfully
-});
+    const result = await book.save();
+    res.status(201).json(result);
+  })
+);
 
-// Validate Create Book
-function validateCreateBook(obj) {
-  const schema = Joi.object({
-    title: Joi.string().trim().min(3).max(200).required(),
-    author: Joi.string().trim().min(3).max(40).required(),
-    desc: Joi.string().trim().min(3).max(500).required(),
-    price: Joi.number().min(0).required(),
-  });
-  return schema.validate(obj);
-}
 module.exports = router;
 
 {
@@ -100,29 +103,31 @@ module.exports = router;
    */
 }
 
-// Validate Update Book
-function validateUpdateBook(obj) {
-  const schema = Joi.object({
-    title: Joi.string().trim().min(3).max(200),
-    author: Joi.string().trim().min(3).max(40),
-    desc: Joi.string().trim().min(3).max(500),
-    price: Joi.number().min(0),
-  });
-  return schema.validate(obj);
-}
-router.put("/:id", (req, res) => {
-  const { error } = validateUpdateBook(req.body);
-  if (error) {
-    return res.status(400).json({ message: error.details[0].message });
-  }
-  const book = books.find((b) => b.id === parseInt(req.params.id));
-  if (book) {
-    res.status(200).json({ message: "book has been updated" });
-  } else {
-    res.status(404).json({ message: "book not found" });
-  }
-});
-
+router.put(
+  "/:id",
+  asyncHandler(async (req, res) => {
+    const { error } = validateUpdateBook(req.body);
+    if (error) {
+      return res.status(400).json({ message: error.details[0].message });
+    }
+    const updatedBook = await Book.findByIdAndUpdate(
+      req.params.id,
+      {
+        $set: {
+          title: req.body.title,
+          author: req.body.author,
+          desc: req.body.desc,
+          cover:req.body.cover,
+          price: req.body.price
+        },
+      },
+      {
+        new: true,
+      }
+    );
+    res.status(200).json(updatedBook);
+  })
+);
 
 {
   /**
@@ -133,11 +138,14 @@ router.put("/:id", (req, res) => {
    */
 }
 
-router.delete("/:id", (req, res) => {
-  const book = books.find((b) => b.id === parseInt(req.params.id));
-  if (book) {
-    res.status(200).json({ message: "book has been deleted" });
-  } else {
-    res.status(404).json({ message: "book not found" });
-  }
-});
+router.delete(
+  "/:id",
+  asyncHandler(async (req, res) => {
+    const book = await Book.findByIdAndDelete(req.params.id);
+    if (book) {
+      res.status(200).json({ message: "book has been deleted" });
+    } else {
+      res.status(404).json({ message: "book not found" });
+    }
+  })
+);
