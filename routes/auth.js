@@ -2,6 +2,7 @@ const express = require("express");
 const router = express.Router();
 const asyncHandler = require("express-async-handler");
 const {User , validateRegisterUser, validateLoginUser} = require("../models/User")
+const bcrypt = require("bcryptjs")
 module.exports = router;
 {
     /**
@@ -21,7 +22,8 @@ module.exports = router;
     if(user){
         res.status(400).json({message:"this email already exists"});
     }
-
+    const salt = await bcrypt.genSalt(10);
+    req.body.password = await bcrypt.hash(req.body.password, salt);
     user = new User({
         email: req.body.email,
         username:req.body.username,
@@ -30,5 +32,7 @@ module.exports = router;
     })
 
     const result = await user.save()
-    res.status(201).json(result)
+    const token = null;
+    const {password, ...other} = result._doc
+    res.status(201).json({...other, token})
   }))
