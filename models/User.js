@@ -1,7 +1,7 @@
 const mongoose = require("mongoose");
 const Joi = require("joi");
 
-const UserModel = new mongoose.Schema({
+const UserSchema = new mongoose.Schema({
   email:{
     type:String,
     required:true,
@@ -38,7 +38,7 @@ function validateRegisterUser(obj){
     email:Joi.string().trim().min(5).max(100).required().email(),
     username:Joi.string().trim().min(2).max(200).required(),
     password:Joi.string().trim().min(6).required(),
-    isAdmin:Joi.string().bool(),
+    isAdmin:Joi.bool(),
   })
   return schema.validate(obj);
 }
