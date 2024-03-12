@@ -3,7 +3,11 @@ const router = express.Router();
 const asyncHandler = require("express-async-handler");
 const { User, validateUpdateUser } = require("../models/User");
 const bcrypt = require("bcryptjs");
-const {verifyToken} = require("../middlewares/verifyToken");
+const {
+  verifyToken,
+  verifyTokenAndAuthorization,
+  verifyTokenAndAdmin,
+} = require("../middlewares/verifyToken");
 {
   /**
    * @desc   Update User
@@ -15,11 +19,8 @@ const {verifyToken} = require("../middlewares/verifyToken");
 
 router.put(
   "/:id",
-  verifyToken,
+  verifyTokenAndAuthorization,
   asyncHandler(async (req, res) => {
-    if (req.user.id !== req.params.id){
-        return res.status(403).json({message:"you are not allowed, you only can update your profile"})
-    }
     const { error } = validateUpdateUser(req.body);
     if (error) {
       return res.status(400).json({ message: error.details[0].message });
@@ -38,8 +39,73 @@ router.put(
           password: req.body.password,
           username: req.body.username,
         },
-      },{ new: true }).select("-password");
+      },
+      { new: true }
+    ).select("-password");
     res.status(200).json(updatedUser);
+  })
+);
+
+{
+  /**
+   * @desc   Get All Users
+   * @route  /api/users
+   * @method GET
+   * @access private (only admin)
+   */
+}
+
+router.get(
+  "/",
+  verifyTokenAndAdmin,
+  asyncHandler(async (req, res) => {
+    const users = await User.find().select("-password");
+    res.status(200).json(users);
+  })
+);
+
+{
+  /**
+   * @desc   Get User by id
+   * @route  /api/users/:id
+   * @method GET
+   * @access private (only admin and user himself)
+   */
+}
+
+router.get(
+  "/:id",
+  verifyTokenAndAuthorization,
+  asyncHandler(async (req, res) => {
+    const user = await User.findById(req.params.id).select("-password");
+    if (user) {
+      res.status(200).json(user);
+    } else {
+      res.status(404).json({ message: "usr not found" });
+    }
+  })
+);
+
+{
+  /**
+   * @desc   Delete User by id
+   * @route  /api/users/:id
+   * @method DELETE
+   * @access private (only admin and user himself)
+   */
+}
+
+router.delete(
+  "/:id",
+  verifyTokenAndAuthorization,
+  asyncHandler(async (req, res) => {
+    const user = await User.findById(req.params.id).select("-password");
+    if (user) {
+      await User.findByIdAndDelete(req.params.id);
+      res.status(200).json({message:"user has been deleted successfully"});
+    } else {
+      res.status(404).json({ message: "user not found" });
+    }
   })
 );
 
